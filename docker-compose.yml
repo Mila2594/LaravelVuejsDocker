@@ -1,8 +1,27 @@
-version: '3'
+version: "3.8"
+
 services:
-  vue-frontend:
+  frontend:
     build:
-      context: .
-      dockerfile: docker/Dockerfile-frontend
+      context: ./frontend
+      dockerfile: DockerFile
     ports:
       - "80:80"
+    networks:
+      - app_network
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: DockerFile
+    ports:
+      - "9000:9000"
+    networks:
+      - app_network
+    volumes:
+      - ./backend:/var/www
+      - ./backend/storage:/var/www/storage
+
+networks:
+  app_network:
+    driver: bridge

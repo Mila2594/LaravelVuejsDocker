@@ -1,0 +1,29 @@
+# Etapa de construcción
+FROM php:8.2-fpm as build
+
+# Instalación de dependencias del sistema
+RUN apt-get update && apt-get install -y \
+    libpq-dev \
+    libzip-dev \
+    unzip \
+    && docker-php-ext-install pdo pdo_pgsql zip
+
+# Instalación de Composer
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+
+# Configuración del directorio de trabajo
+WORKDIR /var/www
+
+# Copiar los archivos del proyecto
+COPY . .
+
+# Instalar dependencias de Composer
+RUN composer install --optimize-autoloader --no-dev
+
+# Permisos para la carpeta de almacenamiento
+RUN chown -R www-data:www-data storage bootstrap/cache
+
+# Exponer el puerto 9000
+EXPOSE 9000
+
+CMD ["php-fpm"]

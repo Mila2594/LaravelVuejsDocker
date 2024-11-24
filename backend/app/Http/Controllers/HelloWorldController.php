@@ -20,7 +20,7 @@ class HelloWorldController extends Controller
     public function index()
     {
         // Obtén la lista de archivos del almacenamiento local
-        $files = Storage::disk('local')->files();
+        $files = Storage::disk('local')->files('app');
 
         // Devuelve la respuesta en formato JSON con los archivos encontrados
         return response()->json([
