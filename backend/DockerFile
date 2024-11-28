@@ -1,29 +1,30 @@
-# Etapa de construcción
-FROM php:8.2-fpm as build
+# Usar una imagen base con PHP y Composer
+FROM php:8.2-cli
 
-# Instalación de dependencias del sistema
+# Instalar extensiones requeridas
 RUN apt-get update && apt-get install -y \
-    libpq-dev \
     libzip-dev \
     unzip \
-    && docker-php-ext-install pdo pdo_pgsql zip
+    && docker-php-ext-install pdo pdo_mysql zip
 
-# Instalación de Composer
+# Instalar Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# Configuración del directorio de trabajo
+# Configurar directorio de trabajo
 WORKDIR /var/www
 
 # Copiar los archivos del proyecto
 COPY . .
 
 # Instalar dependencias de Composer
-RUN composer install --optimize-autoloader --no-dev
+RUN composer install --optimize-autoloader
 
-# Permisos para la carpeta de almacenamiento
-RUN chown -R www-data:www-data storage bootstrap/cache
+# Permisos para carpetas necesarias
+RUN chmod -R 775 storage bootstrap/cache \
+    && chown -R www-data:www-data storage bootstrap/cache
 
-# Exponer el puerto 9000
-EXPOSE 9000
+# Exponer el puerto donde correrá la aplicación
+EXPOSE 8000
 
-CMD ["php-fpm"]
+# Comando para iniciar el servidor Laravel
+CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=8000"]
