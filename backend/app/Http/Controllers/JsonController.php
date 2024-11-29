@@ -26,7 +26,7 @@ class JsonController extends Controller
      */
     public function index()
     {
-        $files = Storage::files('app');
+        $files = Storage::files('');
         $validJsonFiles = [];
 
         foreach ($files as $file) {

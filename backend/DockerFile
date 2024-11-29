@@ -5,7 +5,8 @@ FROM php:8.2-cli
 RUN apt-get update && apt-get install -y \
     libzip-dev \
     unzip \
-    && docker-php-ext-install pdo pdo_mysql zip
+    && docker-php-ext-install pdo pdo_mysql zip \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Instalar Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
@@ -17,11 +18,16 @@ WORKDIR /var/www
 COPY . .
 
 # Instalar dependencias de Composer
-RUN composer install --optimize-autoloader
+RUN composer install --no-dev --optimize-autoloader
 
-# Permisos para carpetas necesarias
-RUN chmod -R 775 storage bootstrap/cache \
-    && chown -R www-data:www-data storage bootstrap/cache
+# Crear el enlace simbólico
+RUN php artisan storage:link
+
+
+# Configurar permisos
+RUN chmod -R 775 /var/www/storage /var/www/bootstrap/cache \
+&& chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache
+
 
 # Exponer el puerto donde correrá la aplicación
 EXPOSE 8000

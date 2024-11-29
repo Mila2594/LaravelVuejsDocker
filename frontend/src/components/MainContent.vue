@@ -175,7 +175,11 @@ export default {
         // Si la opcion seleccionada es Json
         if (this.selectedMenu === 'JSON' || this.selectedMenu === 'Class Storage') {
           if (this.selectedAction === 'Get Files' || this.selectedAction === 'Show') {
-            this.textAreaContent = JSON.stringify(data, null, 2);
+            if (this.selectedMenu === 'JSON') {
+              this.textAreaContent = data.contenido; // Para JSON, accede a "contenido"
+            } else {
+              this.textAreaContent = data; // Para Storage, usa "data" directamente
+            }
           }
         }
         // Si la opcion seleccionada es CSV
