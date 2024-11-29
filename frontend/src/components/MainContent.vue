@@ -173,15 +173,44 @@ export default {
           
 
         // Si la opcion seleccionada es Json
-        if (this.selectedMenu === 'JSON' || this.selectedMenu === 'Class Storage') {
+        if (this.selectedMenu === 'JSON') {
           if (this.selectedAction === 'Get Files' || this.selectedAction === 'Show') {
-            if (this.selectedMenu === 'JSON') {
-              this.textAreaContent = data.contenido; // Para JSON, accede a "contenido"
-            } else {
-              this.textAreaContent = data; // Para Storage, usa "data" directamente
-            }
+            
+            // el contenido de data es: {"mensaje":"Listado de ficheros","contenido":["app\/1","app\/mi_archivo2.json","app\/qwewq","app\/sadasd.json"]} , y quiero obtener el contenido de la clave contenido
+            this.textAreaContent = JSON.stringify(data.contenido, null, 2);
+            
           }
         }
+
+        if (this.selectedMenu === 'Class Storage' ) {
+          if (this.selectedAction === 'Get Files') {
+            data = JSON.parse(data); // Convierte la cadena JSON en un objeto  
+            const contenido = data?.contenido;
+            if (contenido) {
+              console.log('Contenido:', contenido);
+              this.textAreaContent = contenido.join('\n');
+
+            } else {
+              console.warn('La clave "contenido" no existe en data:', data);
+            }
+          }
+          if (this.selectedAction === 'Show') {
+            data = JSON.parse(data); // Convierte la cadena JSON en un objeto  
+            const contenido = data?.contenido;
+            if (contenido) {
+              console.log('Contenido:', contenido);
+              this.textAreaContent = contenido;
+
+            } else {
+              console.warn('La clave "contenido" no existe en data:', data);
+            }
+          
+          }
+
+
+
+        }
+
         // Si la opcion seleccionada es CSV
         if (this.selectedMenu === 'CSV') {
           if (this.selectedAction === 'Get Files' || this.selectedAction === 'Show') {
