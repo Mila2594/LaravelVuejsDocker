@@ -146,17 +146,25 @@ Clonar el repositorio: Clona el repositorio a tu máquina local, utiliza los sig
 
 ## Antes de comenzar
 
-Antes de levantar los contenedores, asegúrate de que se cumplan los siguientes requisitos:
+Antes de levantar los contenedores, asegúrate de que se cumplan los siguientes requisitos:Antes de levantar los contenedores, asegúrate de que Docker esté correctamente instalado y en ejecución en tu máquina.
 
-**Docker Desktop**
+#### **Verifica que Docker esté activo:**
 
-* Verifica que Docker Desktop esté instalado y en ejecución en tu máquina.
-    - En sistemas Windows y macOS, puedes buscar el icono de Docker en la barra de tareas o menú superior. Si no está activo, inicia la aplicación antes de continuar.
-    - En sistemas Linux, asegúrate de que el servicio Docker esté en funcionamiento (sudo systemctl start docker si es necesario).
+- Windows y macOS:
+Comprueba que Docker Desktop esté instalado y en ejecución. Puedes buscar el icono de Docker en la barra de tareas (Windows) o en el menú superior (macOS). Si no está activo, abre Docker Desktop antes de continuar.
+
+- Linux (por ejemplo, Ubuntu):
+Asegúrate de que el servicio Docker esté en funcionamiento. Puedes verificarlo ejecutando el comando:
+  * sudo systemctl status docker
   
-* Requisitos de software:
-    - Docker: Guía de instalación
-    - Docker Compose: Guía de instalación
+  Si el servicio no está activo, inícialo con:
+  * sudo systemctl start docker
+
+  
+#### **Requisitos de software**
+  - Docker: Consulta la [Guía de instalación de Docker](https://docs.docker.com/get-docker/).
+  - Docker Compose: Consulta la [Guía de instalación de Docker Compose](https://docs.docker.com/compose/install/).
+
 
 ## Uso
 Para iniciar los servicios del frontend y backend, utiliza Docker Compose. Asegúrate de estar en el directorio raíz del proyecto donde se encuentra el archivo docker-compose.yml.
