@@ -1,115 +1,125 @@
 <?php
-
 namespace App\Http\Controllers;
-
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
-
+use Illuminate\Http\JsonResponse;
 class CsvController extends Controller
 {
+    private $storagePath = 'app/'; // Prefijo para almacenar archivos
     /**
-     * Lista todos los ficheros JSON de la carpeta storage/app.
-     * Se debe comprobar fichero a fichero si su contenido es un JSON válido.
-     * para ello, se puede usar la función json_decode y json_last_error.
+     * Lista todos los ficheros CSV de la carpeta storage/app.
      *
-     * Devuelve el formato csv de lo leido en el storage/app
-     * No debe validar el Json
+     * @return JsonResponse La respuesta en formato JSON.
      */
-    public function index()
+    public function index(): JsonResponse
     {
-        // Obtén la lista de archivos del almacenamiento local
-        $files = Storage::disk('local')->files('app');
-
-        // Devuelve la respuesta en formato CSV con los archivos encontrados
-        $csv = "mensaje,contenido\n";
-        foreach ($files as $file) {
-            $csv .= "Listado de ficheros," . basename($file) . "\n";
-        }
-
-        return response($csv)->header('Content-Type', 'text/csv');
+        $files = Storage::files($this->storagePath); // Archivos en la ruta 'app/'
+        $csvFiles = array_filter($files, fn($file) => pathinfo($file, PATHINFO_EXTENSION) === 'csv');
+        return response()->json([
+            'mensaje' => 'Listado de ficheros',
+            'contenido' => array_map(fn($file) => basename($file), $csvFiles),
+        ]);
     }
-
     /**
-     * Muestra el contenido de un fichero JSON específico.
+     * Crea un nuevo fichero CSV con el contenido proporcionado.
      *
-     * @param  string  $filename
-     * @return \Illuminate\Http\Response
+     * @param Request $request
+     * @return JsonResponse
      */
-    public function show($filename)
-    {   
-        //ruta
-        $path = 'app/' . $filename;
-        
-        if (Storage::disk('local')->exists($path)) {
-            // Lee el contenido del archivo
-            $content = Storage::disk('local')->get($path);
-        } else {
-            // Manejo de error si el archivo no existe
-            return response('Fichero no encontrado', 404);
-        }
-        
-        // Devuelve el contenido en formato CSV
-        $csv = "contenido\n";
-        $csv .= $content;
-
-        return response($csv)->header('Content-Type', 'text/csv');
-    }
-
-    /**
-     * Guarda un nuevo fichero JSON en el almacenamiento.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
-    public function store(Request $request)
+    public function store(Request $request): JsonResponse
     {
-        // Guarda el contenido del fichero
         $filename = $request->input('filename');
         $content = $request->input('content');
-        Storage::disk('local')->put("app/{$filename}", $content);
+        if (!$filename || !$content) {
+            return response()->json(['mensaje' => 'Faltan parámetros'], 422);
+        }
+        $path = $this->storagePath . $filename;
+        if (Storage::exists($path)) {
+            return response()->json(['mensaje' => 'El fichero ya existe'], 409);
+        }
 
-        // Devuelve una respuesta en formato CSV
-        $csv = "mensaje,contenido\n";
-        $csv .= "Fichero guardado," . $filename . "\n";
+        //valida la estructura que sea un csv
+        $lines = array_map('trim', explode("\n", $content)); // Dividir por líneas y limpiar espacios
+        $lines = array_filter($lines); // Eliminar líneas vacías
+        // Si no hay contenido válido, devolver error
+        if (count($lines) < 2) {
+            return response()->json(['mensaje' => 'Fichero vacío o corrupto'], 400);
+        }   
 
-        return response($csv)->header('Content-Type', 'text/csv');
+
+        Storage::put($path, $content);
+        return response()->json(['mensaje' => 'Guardado con éxito']);
     }
-
     /**
-     * Actualiza el contenido de un fichero JSON específico.
+     * Muestra el contenido de un fichero CSV.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  string  $filename
-     * @return \Illuminate\Http\Response
+     * @param string $id
+     * @return JsonResponse
      */
-    public function update(Request $request, $filename)
+    public function show(string $id): JsonResponse
     {
-        // Actualiza el contenido del fichero
+        $path = $this->storagePath . $id;
+        // Verificar si el archivo existe
+        if (!Storage::exists($path)) {
+            return response()->json(['mensaje' => 'Fichero no encontrado'], 404);
+        }
+        // Obtener contenido del archivo
+        $content = Storage::get($path);
+        $lines = array_map('trim', explode("\n", $content)); // Dividir por líneas y limpiar espacios
+        $lines = array_filter($lines); // Eliminar líneas vacías
+        // Si no hay contenido válido, devolver error
+        if (count($lines) < 2) {
+            return response()->json(['mensaje' => 'Fichero vacío o corrupto'], 400);
+        }
+        // Extraer la primera fila como cabecera
+        $headers = str_getcsv(array_shift($lines)); // Cabecera como array
+        $data = [];
+        // Combinar cada fila con las cabeceras
+        foreach ($lines as $line) {
+            $row = str_getcsv($line); // Parsear fila CSV
+            if (count($row) === count($headers)) {
+                $data[] = array_combine($headers, $row); // Combinar cabeceras y valores
+            }
+        }
+        // Devolver respuesta JSON con el contenido procesado
+        return response()->json([
+            'mensaje' => 'Fichero leído con éxito',
+            'contenido' => $data,
+        ]);
+    }
+    /**
+     * Actualiza el contenido de un fichero CSV existente.
+     *
+     * @param Request $request
+     * @param string $id
+     * @return JsonResponse
+     */
+    public function update(Request $request, string $id): JsonResponse
+    {
         $content = $request->input('content');
-        Storage::disk('local')->put("app/{$filename}", $content);
-
-        // Devuelve una respuesta en formato CSV
-        $csv = "mensaje,contenido\n";
-        $csv .= "Fichero actualizado," . $filename . "\n";
-
-        return response($csv)->header('Content-Type', 'text/csv');
+        $path = $this->storagePath . $id;
+        if (!$content) {
+            return response()->json(['mensaje' => 'Faltan parámetros'], 422);
+        }
+        if (!Storage::exists($path)) {
+            return response()->json(['mensaje' => 'Fichero no encontrado'], 404);
+        }
+        Storage::put($path, $content);
+        return response()->json(['mensaje' => 'Fichero actualizado exitosamente']);
     }
-
     /**
-     * Elimina un fichero JSON específico del almacenamiento.
+     * Elimina un fichero CSV.
      *
-     * @param  string  $filename
-     * @return \Illuminate\Http\Response
+     * @param string $id
+     * @return JsonResponse
      */
-    public function destroy($filename)
+    public function destroy(string $id): JsonResponse
     {
-        // Elimina el fichero
-        Storage::disk('local')->delete("app/{$filename}");
-
-        // Devuelve una respuesta en formato CSV
-        $csv = "mensaje,contenido\n";
-        $csv .= "Fichero eliminado," . $filename . "\n";
-
-        return response($csv)->header('Content-Type', 'text/csv');
+        $path = $this->storagePath . $id;
+        if (!Storage::exists($path)) {
+            return response()->json(['mensaje' => 'Fichero no encontrado'], 404);
+        }
+        Storage::delete($path);
+        return response()->json(['mensaje' => 'Fichero eliminado exitosamente']);
     }
 }

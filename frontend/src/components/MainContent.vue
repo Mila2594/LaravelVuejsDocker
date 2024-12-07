@@ -164,6 +164,9 @@ export default {
           if (response.status === 404) {
             alert('El fichero no existe');
           }
+          if (response.status === 400) {
+            alert('El fichero no tiene el formato correcto');
+          }
 
           // Si esta marcado Json, se devuelve el contenido a JSON, si esta marcado CSV, se devuelve CSV
           return this.selectedMenu === 'JSON' ? response.json() : response.text();
@@ -206,18 +209,48 @@ export default {
             }
           
           }
-
-
-
         }
 
         // Si la opcion seleccionada es CSV
         if (this.selectedMenu === 'CSV') {
-          if (this.selectedAction === 'Get Files' || this.selectedAction === 'Show') {
+          if (this.selectedAction === 'Get Files') {
             
-            // TextArea se llena con el contenido del archivo CSV
-            this.textAreaContent = data;
+            data = JSON.parse(data); // Convierte la cadena JSON en un objeto
+            const contenido = data?.contenido;
+
+            if (contenido) {
+              console.log('Contenido:', contenido);
+              // Convierte el array de objetos en una cadena JSON
+              this.textAreaContent = JSON.stringify(contenido, null, 2); // El parámetro `null, 2` es para formato legible
+            } else {
+              console.warn('La clave "contenido" no existe en data:', data);
+            }
           }
+
+          if (this.selectedAction === 'Show') {
+
+            data = JSON.parse(data); // Convierte la cadena JSON en un objeto
+            const contenido = data?.contenido;
+
+            if (contenido) {
+              console.log('Contenido:', contenido);
+              
+              // Crear una cadena sin los corchetes al principio y al final
+              this.textAreaContent = contenido
+                .map(item => {
+                  // Itera sobre las claves del objeto y construye una cadena dinámica
+                  return '{ ' + Object.entries(item)
+                    .map(([key, value]) => `${key}: ${value}`)
+                    .join(', ') + ' }';
+                })
+                .join('\n'); // Agregar salto de línea entre los objetos
+
+            } else {
+              console.warn('La clave "contenido" no existe en data:', data);
+            }
+
+          }
+
           
         }
 

@@ -26,7 +26,7 @@ export default {
   },
   data() {
     return {
-      menuOptions: ['Class Storage', 'JSON', 'CSV', 'XML'],
+      menuOptions: ['Class Storage', 'JSON', 'CSV'],
       selectedMenu: 'Class Storage',
     };
   },
