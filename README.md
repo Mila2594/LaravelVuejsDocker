@@ -170,7 +170,7 @@ Asegúrate de que el servicio Docker esté en funcionamiento. Puedes verificarlo
 Para iniciar los servicios del frontend y backend, utiliza Docker Compose. Asegúrate de estar en el directorio raíz del proyecto donde se encuentra el archivo docker-compose.yml.
 
 
-- docker-compose up --d
+- docker-compose up -d
 
 Esto construirá las imágenes y levantará los contenedores definidos en el archivo docker-compose.yml.
 
