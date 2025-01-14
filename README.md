@@ -52,8 +52,8 @@ Asegúrate de que Docker está instalado y activo en tu máquina:
 
 Clonar el repositorio: Clona el repositorio a tu máquina local, utiliza los siguiente comandos:
 
-- git clone <URL_DEL_REPOSITORIO>
-- cd <directorio_del_proyecto>
+- git clone https://github.com/Mila2594/LaravelVuejsDocker.git
+- cd LaravelVuejsDocker
 
 ### 3️⃣ Iniciar los servicios
 Para iniciar los servicios del frontend y backend, utiliza Docker Compose. Asegúrate de estar en el directorio raíz del proyecto donde se encuentra el archivo docker-compose.yml.
